@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { CATEGORIES, SESSION_LENGTHS, pointsFor, type Activity, type CategoryKey } from "../game/activities";
 import type { LogEntry } from "../game/stats";
+import { SaveControls } from "./SaveControls";
 
 interface Props {
   minutes: number;
@@ -80,6 +81,9 @@ export function LogPanel({ minutes, onMinutes, onLog, today }: Props) {
             </AnimatePresence>
           </ul>
         )}
+        <div className="mt-5">
+          <SaveControls />
+        </div>
       </div>
     </aside>
   );
