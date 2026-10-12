@@ -1,3 +1,4 @@
+import { isThemeKey } from "../world/themes";
 import type { Keepsake, World } from "./store";
 import type { LogEntry } from "./stats";
 
@@ -24,8 +25,8 @@ export function serializeSave(data: SaveData, now = new Date()): string {
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isEntry = (e: unknown) =>
   isObj(e) && typeof e.id === "string" && typeof e.at === "string" && typeof e.activity === "string" && typeof e.category === "string" && typeof e.points === "number";
-const isWorld = (w: unknown) => isObj(w) && typeof w.seed === "number" && typeof w.number === "number" && typeof w.startedAt === "string";
-const isKeepsake = (k: unknown) => isObj(k) && typeof k.seed === "number" && typeof k.completedAt === "string" && typeof k.startedAt === "string";
+const isWorld = (w: unknown) => isObj(w) && isThemeKey(w.theme) && typeof w.seed === "number" && typeof w.number === "number" && typeof w.startedAt === "string";
+const isKeepsake = (k: unknown) => isObj(k) && isThemeKey(k.theme) && typeof k.seed === "number" && typeof k.completedAt === "string" && typeof k.startedAt === "string";
 
 /** Parses a save file, throwing an Error with a readable message when it isn't one. */
 export function parseSave(text: string): SaveData {

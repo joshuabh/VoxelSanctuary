@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { renderStill } from "../world/still";
+import { themeOf, type ThemeKey } from "../world/themes";
 import { seedLabel } from "./WorldPanel";
 
 const W = 1920, H = 1080;
 
 /** Composes the wallpaper: the fully grown world plus a quiet caption. */
-function composeWallpaper(seed: number, worldNumber: number, rotation: number): Promise<string> {
+function composeWallpaper(theme: ThemeKey, seed: number, worldNumber: number, rotation: number): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -24,29 +25,29 @@ function composeWallpaper(seed: number, worldNumber: number, rotation: number): 
       g.fillRect(96, H - 176, 40, 3);
       g.fillStyle = "#e6ece9";
       g.font = "500 34px Unbounded, sans-serif";
-      g.fillText("Bonsai Garden", 96, H - 132);
+      g.fillText(themeOf(theme).name, 96, H - 132);
       g.fillStyle = "#9aa8a3";
       g.font = "400 20px Manrope, sans-serif";
       g.fillText(`World ${worldNumber}  ·  Seed ${seedLabel(seed)}`, 96, H - 92);
       resolve(c.toDataURL("image/jpeg", 0.92));
     };
-    img.src = renderStill(seed, W, H, { background: 0x0d1213, rotation, pad: 0.85, lift: 0.08 });
+    img.src = renderStill(theme, seed, W, H, { background: 0x0d1213, rotation, pad: 0.85, lift: 0.08 });
   });
 }
 
-export function WallpaperModal({ seed, worldNumber, rotation, onClose }: { seed: number; worldNumber: number; rotation: number; onClose: () => void }) {
+export function WallpaperModal({ theme, seed, worldNumber, rotation, onClose }: { theme: ThemeKey; seed: number; worldNumber: number; rotation: number; onClose: () => void }) {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    composeWallpaper(seed, worldNumber, rotation).then((url) => live && setSrc(url));
+    composeWallpaper(theme, seed, worldNumber, rotation).then((url) => live && setSrc(url));
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     addEventListener("keydown", onKey);
     return () => {
       live = false;
       removeEventListener("keydown", onKey);
     };
-  }, [seed, worldNumber, rotation, onClose]);
+  }, [theme, seed, worldNumber, rotation, onClose]);
 
   return (
     <motion.div
@@ -59,12 +60,12 @@ export function WallpaperModal({ seed, worldNumber, rotation, onClose }: { seed:
     >
       <div className="grid w-full max-w-[960px] gap-3.5">
         {src ? (
-          <img src={src} alt="Wallpaper preview of the fully grown bonsai garden" className="block w-full rounded-[14px] border border-line" />
+          <img src={src} alt={`Wallpaper preview of the fully grown ${themeOf(theme).name}`} className="block w-full rounded-[14px] border border-line" />
         ) : (
           <div className="grid aspect-video place-items-center rounded-[14px] border border-line bg-carbon-2 text-fg-3">Rendering…</div>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3 text-[13px] text-fg-2">
-          <span>Desktop wallpaper, shown as this world will look at Master Bonsai.</span>
+          <span>Desktop wallpaper, shown as this world will look at {themeOf(theme).stages[4]}.</span>
           <div className="flex gap-2">
             {src && (
               <a className="ghost" href={src} download={`voxel-sanctuary-world-${worldNumber}.jpg`}>

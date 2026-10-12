@@ -1,17 +1,12 @@
 export const WORLD_GOAL = 1000;
 
-export const BONSAI_STAGES = [
-  { name: "Seed", at: 0 },
-  { name: "Sprout", at: 100 },
-  { name: "Sapling", at: 300 },
-  { name: "Trained Bonsai", at: 600 },
-  { name: "Master Bonsai", at: 1000 },
-] as const;
+/** WP at which each of a world's five stages begins; every theme shares them. */
+export const STAGE_AT = [0, 100, 300, 600, 1000] as const;
 
 export function stageIndex(wp: number): number {
   let i = 0;
-  BONSAI_STAGES.forEach((s, k) => {
-    if (wp >= s.at) i = k;
+  STAGE_AT.forEach((at, k) => {
+    if (wp >= at) i = k;
   });
   return i;
 }

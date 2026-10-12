@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { Voxel } from "./bonsai";
+import type { Voxel } from "./voxel";
 
 /** Shared lighting and camera setup for the live scene and still renders. */
 export const LIGHTS = {
