@@ -1,8 +1,9 @@
 import { generateBonsai } from "./bonsai";
 import { cityLanes, generateCity, type Lane } from "./city";
+import { generateTemple } from "./temple";
 import type { Voxel } from "./voxel";
 
-export type ThemeKey = "bonsai" | "city";
+export type ThemeKey = "bonsai" | "city" | "temple";
 
 export interface Theme {
   key: ThemeKey;
@@ -35,10 +36,18 @@ export const THEMES: Record<ThemeKey, Theme> = {
     frame: 1.25,
     lanes: cityLanes,
   },
+  temple: {
+    key: "temple",
+    name: "Ancient Temple",
+    stages: ["Overgrown Ruins", "Cleared Grounds", "Restored Terraces", "Temple Complex", "Grand Sanctuary"],
+    blurb: "Jungle ruins you uncover and rebuild into a golden stepped temple.",
+    generate: generateTemple,
+    frame: 1.12,
+  },
 };
 
 /** Worlds from the scope that are planned but not built yet. */
-export const UPCOMING = ["Ancient Temple", "Space Colony", "Companion Creature"];
+export const UPCOMING = ["Space Colony", "Companion Creature"];
 
 export const isThemeKey = (k: unknown): k is ThemeKey => typeof k === "string" && k in THEMES;
 export const themeOf = (k: string | undefined) => THEMES[isThemeKey(k) ? k : "bonsai"];

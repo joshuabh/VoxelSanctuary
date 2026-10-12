@@ -19,7 +19,7 @@ npm run build    # type-check and production build
 
 ## What's here
 
-- **Worlds**: Bonsai Garden (`src/world/bonsai.ts`) and Voxel City (`src/world/city.ts`, a country town that grows into a metropolis, with moving traffic from `src/world/Traffic.tsx`), registered in `src/world/themes.ts`. Both sit on a shared floating island (`src/world/island.ts`). Every voxel carries the progress value at which it grows in, so the same seed always regrows the same world. Pick a world before you earn your first points, or when you save a finished one as a keepsake.
+- **Worlds**: Bonsai Garden (`src/world/bonsai.ts`) and Voxel City (`src/world/city.ts`, a country town that grows into a metropolis, with moving traffic from `src/world/Traffic.tsx`) and Ancient Temple (`src/world/temple.ts`, jungle ruins rebuilt into a golden stepped temple), registered in `src/world/themes.ts`. All three sit on a shared floating island (`src/world/island.ts`). Every voxel carries the progress value at which it grows in, so the same seed always regrows the same world. Pick a world before you earn your first points, or when you save a finished one as a keepsake.
 - **Growth animation**: voxels pop in, staggered by growth order, through one instanced mesh in React Three Fiber (`src/world/VoxelWorld.tsx`). Drag to turn the island; "Replay growth" regrows it from seed.
 - **Logging and points**: activity catalogue and point rules (`src/game/activities.ts`), stages (`src/game/stages.ts`), saved locally with a Zustand store (`src/game/store.ts`).
 - **Saves**: export your progress to a JSON file and import it on another browser or device (`src/game/save.ts`).

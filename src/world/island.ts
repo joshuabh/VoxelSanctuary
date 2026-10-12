@@ -3,7 +3,7 @@ import type { Builder } from "./voxel";
 export const GRASS = ["#2b5a45", "#2f634b", "#285240", "#336b51"];
 export const DIRT = ["#4a3a2d", "#544130", "#433428"];
 export const STONE = ["#353d42", "#3f474d", "#2d3439"];
-const WATER = "#3fb3bf";
+export const WATER = "#3fb3bf";
 
 interface IslandOptions {
   radius: number;
@@ -14,6 +14,8 @@ interface IslandOptions {
   pond: boolean;
   /** Overrides the top colour of a cell (paths, plazas). */
   topColor?: (x: number, z: number) => string | undefined;
+  /** When a cell's top is replaced by something else (paving, water), from that progress on. */
+  topUntil?: (x: number, z: number) => number | undefined;
 }
 
 /** Builds a floating island (present from the start, t = 0) and returns its surface height lookup. */
@@ -33,7 +35,7 @@ export function buildIsland(b: Builder, opts: IslandOptions) {
       top.set(`${x},${z}`, ty);
       const inPond = opts.pond && Math.hypot(x - pond.x, z - pond.z) < 1.9 && d < edge - 1.5;
       for (let y = by; y <= ty; y++) {
-        if (y === ty) add(x, y, z, inPond ? WATER : opts.topColor?.(x, z) ?? pick(GRASS), 0, inPond ? 0.82 : 1);
+        if (y === ty) add(x, y, z, inPond ? WATER : opts.topColor?.(x, z) ?? pick(GRASS), 0, inPond ? 0.82 : 1, { until: opts.topUntil?.(x, z) });
         else add(x, y, z, y >= ty - 2 ? pick(DIRT) : pick(STONE), 0);
       }
     }
