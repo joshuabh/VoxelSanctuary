@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { pointsFor, type Activity, type CategoryKey } from "./activities";
 import { WORLD_GOAL, stageIndex } from "./stages";
+import type { SaveData } from "./save";
 import type { LogEntry } from "./stats";
 
 export interface Keepsake {
@@ -34,6 +35,8 @@ interface SanctuaryState {
   log: (activity: Activity, category: CategoryKey) => { entry: LogEntry; milestone: Milestone | null };
   /** Saves the finished world as a keepsake and starts a new one. */
   completeWorld: () => void;
+  /** Replaces all progress with an imported save. */
+  loadSave: (data: SaveData) => void;
 }
 
 const newSeed = () => (Math.random() * 0xffffff) | 0;
@@ -81,6 +84,7 @@ export const useSanctuary = create<SanctuaryState>()(
         };
         set({ keepsakes: [...s.keepsakes, keepsake], world: newWorld(s.world.number + 1) });
       },
+      loadSave: ({ entries, world, keepsakes }) => set({ entries, world, keepsakes }),
     }),
     { name: "voxel-sanctuary", version: 1 },
   ),
