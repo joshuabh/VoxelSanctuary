@@ -1,21 +1,23 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { generateBonsai, isVisible } from "./bonsai";
+import { themeOf, type ThemeKey } from "./themes";
+import { isVisible } from "./voxel";
 import { easeOutBack, placeVoxel } from "./look";
 
 const POP_MS = 480;
 const STAGGER_MS = 900;
 
 interface Props {
+  theme: ThemeKey;
   seed: number;
   progress: number;
   reduceMotion: boolean;
 }
 
 /** Instanced voxel world; voxels pop in, staggered by growth order, as progress rises. */
-export function VoxelWorld({ seed, progress, reduceMotion }: Props) {
-  const voxels = useMemo(() => generateBonsai(seed), [seed]);
+export function VoxelWorld({ theme, seed, progress, reduceMotion }: Props) {
+  const voxels = useMemo(() => themeOf(theme).generate(seed), [theme, seed]);
   const mesh = useRef<THREE.InstancedMesh>(null!);
   const shown = useRef<boolean[]>([]);
   const anim = useRef(new Map<number, number>());
@@ -70,7 +72,7 @@ export function VoxelWorld({ seed, progress, reduceMotion }: Props) {
   });
 
   return (
-    <instancedMesh key={seed} ref={mesh} args={[undefined, undefined, voxels.length]} castShadow receiveShadow>
+    <instancedMesh key={`${theme}-${seed}`} ref={mesh} args={[undefined, undefined, voxels.length]} castShadow receiveShadow>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial roughness={0.85} metalness={0} flatShading />
     </instancedMesh>

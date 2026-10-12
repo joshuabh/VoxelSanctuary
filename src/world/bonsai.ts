@@ -1,25 +1,9 @@
-import { mulberry32, valueNoise2D } from "./rng";
+import { STONE, buildIsland, scatter } from "./island";
+import { createBuilder, type Voxel } from "./voxel";
 
-export interface Voxel {
-  x: number;
-  y: number;
-  z: number;
-  color: string;
-  /** World progress (0..1) at which this voxel appears. */
-  t: number;
-  /** Uniform scale; small voxels sit on the surface below them. */
-  scale: number;
-  /** The seed voxel shows only before the trunk starts growing. */
-  isSeed?: boolean;
-}
-
-const GRASS = ["#2b5a45", "#2f634b", "#285240", "#336b51"];
-const DIRT = ["#4a3a2d", "#544130", "#433428"];
-const STONE = ["#353d42", "#3f474d", "#2d3439"];
 const BARK = ["#6b4a33", "#77533a", "#5c3f2b"];
 const LEAF = ["#2f9e6e", "#37b07b", "#43c287", "#2a8c62"];
 const LEAF_TOP = "#55d39a";
-const WATER = "#3fb3bf";
 const BLOSSOM = "#e8c26a";
 const FLOWER = ["#8fe6ee", "#e8c26a", "#e6ece9", "#b9a6f0"];
 
@@ -29,39 +13,9 @@ const FLOWER = ["#8fe6ee", "#e8c26a", "#e6ece9", "#b9a6f0"];
  * Pure and deterministic for a given seed.
  */
 export function generateBonsai(seed: number): Voxel[] {
-  const rnd = mulberry32(seed);
-  const noise = valueNoise2D(seed);
-  const pick = <T,>(arr: readonly T[]) => arr[Math.floor(rnd() * arr.length)];
-  const voxels: Voxel[] = [];
-  const occupied = new Set<string>();
-  const add = (x: number, y: number, z: number, color: string, t: number, scale = 1) => {
-    const key = `${x},${y},${z}`;
-    if (occupied.has(key)) return;
-    occupied.add(key);
-    voxels.push({ x, y, z, color, t: Math.max(0, Math.min(1, t)), scale });
-  };
-
-  // Floating island
-  const R = 8;
-  const top = new Map<string, number>();
-  const pond = { x: 4 + Math.floor(rnd() * 2), z: -4 - Math.floor(rnd() * 2) };
-  for (let x = -R; x <= R; x++) {
-    for (let z = -R; z <= R; z++) {
-      const d = Math.hypot(x, z);
-      const edge = R - 2 + noise(x * 0.35 + 3, z * 0.35 + 7) * 2.6;
-      if (d > edge) continue;
-      const k = 1 - d / edge;
-      const ty = Math.round(noise(x * 0.22 + 11, z * 0.22 - 4) * 1.4 + (d < 3.2 ? 1 : 0));
-      const by = -Math.round(k * 6.5 + noise(x * 0.5, z * 0.5) * 2.2) - 1;
-      top.set(`${x},${z}`, ty);
-      const inPond = Math.hypot(x - pond.x, z - pond.z) < 1.9 && d < edge - 1.5;
-      for (let y = by; y <= ty; y++) {
-        if (y === ty) add(x, y, z, inPond ? WATER : pick(GRASS), 0, inPond ? 0.82 : 1);
-        else add(x, y, z, y >= ty - 2 ? pick(DIRT) : pick(STONE), 0);
-      }
-    }
-  }
-  const topAt = (x: number, z: number) => top.get(`${x},${z}`);
+  const b = createBuilder(seed);
+  const { rnd, pick, add, voxels } = b;
+  const { topAt, nearPond } = buildIsland(b, { radius: 8, roughness: 1, mound: true, pond: true });
 
   // Rocks
   for (let i = 0; i < 6; i++) {
@@ -139,14 +93,6 @@ export function generateBonsai(seed: number): Voxel[] {
   cluster(tx, ty + 2, tz, 3.6, 1.8, 0.72, 0.2);
 
   // Wildflowers spread as the garden matures
-  for (let i = 0; i < 40; i++) {
-    const x = Math.round((rnd() * 2 - 1) * 9), z = Math.round((rnd() * 2 - 1) * 9);
-    const ty = topAt(x, z);
-    if (ty === undefined || Math.hypot(x - pond.x, z - pond.z) < 2.2 || Math.hypot(x, z) < 2) continue;
-    add(x, ty + 1, z, pick(FLOWER), 0.25 + rnd() * 0.75, 0.38);
-  }
+  scatter(b, topAt, 40, FLOWER, 0.25, (x, z) => !nearPond(x, z, 2.2) && Math.hypot(x, z) >= 2);
   return voxels;
 }
-
-/** Whether a voxel is visible at the given progress. */
-export const isVisible = (v: Voxel, progress: number) => (v.isSeed ? progress < 0.04 : v.t <= progress);

@@ -1,11 +1,14 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Fireflies } from "./Fireflies";
 import { LIGHTS, frameOrtho } from "./look";
+import { themeOf, type ThemeKey } from "./themes";
+import { Traffic } from "./Traffic";
 import { VoxelWorld } from "./VoxelWorld";
 
 interface Props {
+  theme: ThemeKey;
   seed: number;
   progress: number;
   reduceMotion: boolean;
@@ -13,13 +16,13 @@ interface Props {
   rotation: React.MutableRefObject<number>;
 }
 
-function Framing() {
+function Framing({ frame }: { frame: number }) {
   const { camera, size } = useThree();
   useLayoutEffect(() => {
-    // Narrow (phone) views need more headroom for the full-grown canopy.
+    // Narrow (phone) views need more headroom for the full-grown world.
     const narrow = size.width / size.height < 1.2;
-    frameOrtho(camera as THREE.OrthographicCamera, size.width, size.height, narrow ? 1.12 : 1, narrow ? 0.08 : 0.22);
-  }, [camera, size]);
+    frameOrtho(camera as THREE.OrthographicCamera, size.width, size.height, (narrow ? 1.12 : 1) * frame, narrow ? 0.08 : 0.22);
+  }, [camera, size, frame]);
   return null;
 }
 
@@ -68,7 +71,9 @@ function Turntable({ children, reduceMotion, rotation }: { children: React.React
   return <group ref={group}>{children}</group>;
 }
 
-export function Scene({ seed, progress, reduceMotion, rotation }: Props) {
+export function Scene({ theme, seed, progress, reduceMotion, rotation }: Props) {
+  const { frame, lanes } = themeOf(theme);
+  const roads = useMemo(() => lanes?.(seed), [lanes, seed]);
   return (
     <Canvas
       orthographic
@@ -77,9 +82,9 @@ export function Scene({ seed, progress, reduceMotion, rotation }: Props) {
       gl={{ antialias: true, alpha: true }}
       camera={{ manual: true, near: 0.1, far: 200 } as never}
       className="!absolute inset-0 cursor-grab active:cursor-grabbing"
-      aria-label="Your bonsai garden. Drag to turn it."
+      aria-label="Your world. Drag to turn it."
     >
-      <Framing />
+      <Framing frame={frame} />
       <hemisphereLight args={[LIGHTS.hemi.sky, LIGHTS.hemi.ground, LIGHTS.hemi.intensity]} />
       <directionalLight
         color={LIGHTS.sun.color}
@@ -88,16 +93,17 @@ export function Scene({ seed, progress, reduceMotion, rotation }: Props) {
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0008}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={20}
-        shadow-camera-bottom={-20}
+        shadow-camera-left={-28}
+        shadow-camera-right={28}
+        shadow-camera-top={28}
+        shadow-camera-bottom={-28}
         shadow-camera-near={1}
-        shadow-camera-far={80}
+        shadow-camera-far={120}
       />
       <directionalLight color={LIGHTS.rim.color} intensity={LIGHTS.rim.intensity} position={[...LIGHTS.rim.position]} />
       <Turntable reduceMotion={reduceMotion} rotation={rotation}>
-        <VoxelWorld seed={seed} progress={progress} reduceMotion={reduceMotion} />
+        <VoxelWorld theme={theme} seed={seed} progress={progress} reduceMotion={reduceMotion} />
+        {roads && <Traffic lanes={roads} progress={progress} reduceMotion={reduceMotion} />}
         <Fireflies />
       </Turntable>
     </Canvas>

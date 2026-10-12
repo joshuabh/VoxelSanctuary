@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 import type { Activity, CategoryKey } from "./game/activities";
-import { BONSAI_STAGES } from "./game/stages";
 import { currentStreak, todayEntries, weekCategoryPoints, weekPoints } from "./game/stats";
 import { useSanctuary, worldPoints } from "./game/store";
 import { BalanceCard } from "./ui/BalanceCard";
@@ -10,9 +9,11 @@ import { Rail } from "./ui/Rail";
 import { Toast, type ToastMessage } from "./ui/Toast";
 import { WeekCard } from "./ui/WeekCard";
 import { WorldPanel } from "./ui/WorldPanel";
+import { themeOf } from "./world/themes";
 
 export function App() {
-  const { entries, world, keepsakes, sessionMinutes, setSessionMinutes, log, completeWorld } = useSanctuary();
+  const { entries, world, keepsakes, sessionMinutes, setSessionMinutes, log, completeWorld, chooseTheme } = useSanctuary();
+  const theme = themeOf(world.theme);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [lastGain, setLastGain] = useState<{ id: string; points: number } | null>(null);
 
@@ -29,7 +30,7 @@ export function App() {
       const { entry, milestone } = log(activity, category);
       setLastGain({ id: entry.id, points: entry.points });
       if (milestone?.kind === "complete") setToast({ id: Date.now(), title: "World complete", body: "Save it to your keepsake shelf whenever you're ready." });
-      else if (milestone) setToast({ id: Date.now(), title: `${BONSAI_STAGES[milestone.stage].name} reached`, body: "New growth unlocked in your garden." });
+      else if (milestone) setToast({ id: Date.now(), title: `${themeOf(useSanctuary.getState().world.theme).stages[milestone.stage]} reached`, body: "New growth unlocked in your world." });
     },
     [log],
   );
@@ -45,7 +46,7 @@ export function App() {
             <div className="label">
               World {world.number} · Started {started}
             </div>
-            <h1 className="mt-0.5 text-balance font-display text-[22px] font-medium tracking-[-0.01em]">Bonsai Garden</h1>
+            <h1 className="mt-0.5 text-balance font-display text-[22px] font-medium tracking-[-0.01em]">{theme.name}</h1>
           </div>
           <div className="flex flex-wrap gap-2">
             <Pill dot="emerald" value={week[todayIndex]} label="WP today" />
@@ -53,12 +54,20 @@ export function App() {
           </div>
         </header>
 
-        <WorldPanel seed={world.seed} worldNumber={world.number} wp={wp} lastGain={lastGain} onComplete={completeWorld} />
+        <WorldPanel
+          theme={theme.key}
+          seed={world.seed}
+          worldNumber={world.number}
+          wp={wp}
+          lastGain={lastGain}
+          onComplete={completeWorld}
+          onChooseTheme={chooseTheme}
+        />
 
         <section id="stats" className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 md:px-7 md:pb-7 xl:grid-cols-[1.4fr_1fr_1fr]">
           <WeekCard points={week} todayIndex={todayIndex} />
           <BalanceCard points={weekCats} />
-          <KeepsakeShelf keepsakes={keepsakes} />
+          <KeepsakeShelf keepsakes={keepsakes} finalStage={theme.stages[4]} />
         </section>
       </main>
 
