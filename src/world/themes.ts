@@ -1,5 +1,5 @@
 import { generateBonsai } from "./bonsai";
-import { generateCity } from "./city";
+import { cityLanes, generateCity, type Lane } from "./city";
 import type { Voxel } from "./voxel";
 
 export type ThemeKey = "bonsai" | "city";
@@ -11,6 +11,10 @@ export interface Theme {
   stages: [string, string, string, string, string];
   blurb: string;
   generate: (seed: number) => Voxel[];
+  /** How much bigger than the bonsai island this world is; scales the camera framing. */
+  frame: number;
+  /** Roads for the moving-traffic layer, when the world has any. */
+  lanes?: (seed: number) => Lane[];
 }
 
 export const THEMES: Record<ThemeKey, Theme> = {
@@ -20,13 +24,16 @@ export const THEMES: Record<ThemeKey, Theme> = {
     stages: ["Seed", "Sprout", "Sapling", "Trained Bonsai", "Master Bonsai"],
     blurb: "A tree that grows with mindfulness and consistency.",
     generate: generateBonsai,
+    frame: 1,
   },
   city: {
     key: "city",
     name: "Voxel City",
-    stages: ["Camp", "Village", "Town", "City", "Megacity"],
-    blurb: "A settlement that grows with every walk and stretch.",
+    stages: ["Country Town", "Suburbs", "City", "Downtown", "Metropolis"],
+    blurb: "A country town that grows into a skyscraper metropolis, traffic and all.",
     generate: generateCity,
+    frame: 1.25,
+    lanes: cityLanes,
   },
 };
 

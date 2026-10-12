@@ -11,7 +11,7 @@ export const LIGHTS = {
 export const CAMERA_POSITION = new THREE.Vector3(30, 33, 30);
 export const CAMERA_TARGET = new THREE.Vector3(0, 5, 0);
 
-/** Fits the island and full-grown tree, lifting the world clear of the bottom HUD. */
+/** Fits the world (scaled by `pad`), lifting it clear of the bottom HUD. */
 export function frameOrtho(cam: THREE.OrthographicCamera, w: number, h: number, pad = 1, lift = 0.22) {
   const aspect = w / h;
   let halfH = 15 * pad;
@@ -20,17 +20,19 @@ export function frameOrtho(cam: THREE.OrthographicCamera, w: number, h: number, 
   cam.right = halfH * aspect;
   cam.top = halfH * (1 - lift);
   cam.bottom = -halfH * (1 + lift);
-  cam.position.copy(CAMERA_POSITION);
-  cam.lookAt(CAMERA_TARGET);
+  const target = CAMERA_TARGET.clone().multiplyScalar(pad);
+  cam.position.copy(CAMERA_POSITION).add(target);
+  cam.lookAt(target);
   cam.updateProjectionMatrix();
 }
 
 const dummy = new THREE.Object3D();
 /** Places voxel `i` at growth factor `k` (0 hidden, 1 full size), growing up from its base. */
 export function placeVoxel(mesh: THREE.InstancedMesh, i: number, v: Voxel, k: number) {
-  const s = v.scale * k;
-  dummy.position.set(v.x, v.y - 0.5 + 0.5 * s, v.z);
-  dummy.scale.setScalar(Math.max(s, 0.0001));
+  const s = Math.max(v.scale * k, 0.0001);
+  const sy = s * (v.h ?? 1);
+  dummy.position.set(v.x, v.y - 0.5 + 0.5 * sy, v.z);
+  dummy.scale.set(s, sy, s);
   dummy.updateMatrix();
   mesh.setMatrixAt(i, dummy.matrix);
 }

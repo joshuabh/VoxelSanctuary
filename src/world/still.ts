@@ -26,7 +26,7 @@ export function renderStill(theme: ThemeKey, seed: number, width: number, height
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0008;
-  Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 80 });
+  Object.assign(sun.shadow.camera, { left: -28, right: 28, top: 28, bottom: -28, near: 1, far: 120 });
   scene.add(sun);
   const rim = new THREE.DirectionalLight(LIGHTS.rim.color, LIGHTS.rim.intensity);
   rim.position.set(...LIGHTS.rim.position);
@@ -48,7 +48,7 @@ export function renderStill(theme: ThemeKey, seed: number, width: number, height
   scene.add(mesh);
 
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
-  frameOrtho(cam, width, height, opts.pad ?? 1, opts.lift ?? 0.05);
+  frameOrtho(cam, width, height, (opts.pad ?? 1) * themeOf(theme).frame, opts.lift ?? 0.05);
   renderer.render(scene, cam);
   const url = renderer.domElement.toDataURL(opts.type ?? "image/png", 0.92);
 
