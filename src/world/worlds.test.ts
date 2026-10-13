@@ -55,3 +55,17 @@ describe("Voxel City", () => {
     expect(open(1)).toBeGreaterThan(open(0.05) * 3);
   });
 });
+
+describe("Ancient Temple", () => {
+  const voxels = THEMES.temple.generate(5);
+  const tallest = (p: number) => Math.max(...voxels.filter((v) => isVisible(v, p)).map((v) => v.y));
+
+  it("starts as low ruins and ends with a tall sanctuary tower", () => {
+    expect(tallest(0)).toBeLessThanOrEqual(7);
+    expect(tallest(1)).toBeGreaterThanOrEqual(15);
+  });
+
+  it("replaces the mossy ruins as the temple is restored", () => {
+    expect(voxels.filter((v) => v.t === 0 && v.until !== undefined).length).toBeGreaterThan(100);
+  });
+});
